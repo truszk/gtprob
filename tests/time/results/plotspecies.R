@@ -1,0 +1,27 @@
+gttimes=read.table('~/speciestrees/tests/time/results/results')
+mediantimes=tapply(gttimes$V7,gttimes[,c(1,2,4)],median)
+meantimes=tapply(gttimes$V7,gttimes[,c(1,2,4)],mean)
+par(mfrow=c(3,1)) 
+plot(1,type='n',xlim=c(0,42),ylim=c(0.001,max(gttimes[,7])),xlab='Number of species, 1 gene/species',ylab='time(seconds)',log="y")
+points(gttimes[which(gttimes[,2]==1&gttimes[,4]==1),1],gttimes[which(gttimes[,2]==1&gttimes[,4]==1),7],col='blue')
+points(gttimes[which(gttimes[,2]==1&gttimes[,4]==0),1],gttimes[which(gttimes[,2]==1&gttimes[,4]==0),7],col='red')
+points(gttimes[which(gttimes[,2]==1&gttimes[,4]==2),1],gttimes[which(gttimes[,2]==1&gttimes[,4]==2),7],col='green')
+lines(c(4,8,16,24,32,40),meantimes[3:8,1,2],col='blue')
+lines(c(4,8,16,24,32,40),meantimes[3:8,1,1],col='red')
+lines(c(4,8,16,24,32,40),meantimes[3:8,1,3],col='green')
+
+plot(1,type='n',xlim=c(0,42),ylim=c(0.001,max(gttimes[,7])),xlab='Number of species, 3 genes/species',ylab='time(seconds)',log="y")
+points(gttimes[which(gttimes[,2]==3&gttimes[,4]==1),1],gttimes[which(gttimes[,2]==3&gttimes[,4]==1),7],col='blue')
+points(gttimes[which(gttimes[,2]==3&gttimes[,4]==0),1],gttimes[which(gttimes[,2]==3&gttimes[,4]==0),7],col='red')
+points(gttimes[which(gttimes[,2]==3&gttimes[,4]==2),1],gttimes[which(gttimes[,2]==3&gttimes[,4]==2),7],col='green')
+lines(c(4,8),meantimes[3:4,2,2],col='blue')
+lines(c(4,8,16,24,32,40),meantimes[3:8,2,1],col='red')
+
+plot(1,type='n',xlim=c(0,42),ylim=c(0.001,max(gttimes[,7])),xlab='Number of species, 5 gene/species',ylab='time(seconds)',log="y")
+points(gttimes[which(gttimes[,2]==5&gttimes[,4]==1),1],gttimes[which(gttimes[,2]==5&gttimes[,4]==1),7],col='blue')
+points(gttimes[which(gttimes[,2]==5&gttimes[,4]==0),1],gttimes[which(gttimes[,2]==5&gttimes[,4]==0),7],col='red')
+points(gttimes[which(gttimes[,2]==5&gttimes[,4]==2),1],gttimes[which(gttimes[,2]==5&gttimes[,4]==2),7],col='green')
+
+lines(c(3,4,8),meantimes[2:4,3,2],col='blue')
+lines(c(4,8,16,24,32,40),meantimes[3:8,3,1],col='red')
+

@@ -1,0 +1,11 @@
+*** STELLS ver. 2.1.0, September 23, 2016 ***
+
+Turn off optimal branch length search mode.
+Turn on fixed species coalescent computation mode.
+Starting to read in gene trees...
+************************* Single tree ***********************************
+Log-prob of this tree is -12.42337588
+*******************************************************************
+The log-likelihood of the given gene tree(s) for the initial species tree = -12.42337588
+*******************************************************************
+Elapsed time = 0 seconds.

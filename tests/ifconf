@@ -1,0 +1,2 @@
+inet 193.49.110.10  netmask 255.255.255.128  broadcast 193.49.110.127
+        inet6 fe80::5054:ff:fea9:38d5  prefixlen 64  scopeid 0x20<link>
