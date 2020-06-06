@@ -7,7 +7,7 @@ import numpy as np
 import subprocess
 
 stells_path='/home/jakub/stells/STELLS2-master/stells-v2-1-0-linux64'
-DP_path='python /home/jakub/speciestrees/calcProbConcordant.py'
+DP_path='python ../calcProbConcordant.py'
 
 letters=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
@@ -147,23 +147,23 @@ for nspecies in [4,8,12,16]:
 
 			try:
 				stname='ST.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)
-				FST=file(stname,'w')
-				print >>FST,str(stree)+';'
-				FST.close()
+				with open(stname,'w') as FST:
+					FST.write(str(stree)+';\n')
+				
 				
 				gtname='GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)
-				FGT=file(gtname,'w')
-				print >>FGT,str(gtree)+';'
-				FGT.close()
+				with open(gtname,'w') as FGT:
+					FGT.write(str(gtree)+';\n')
+				
 
 				gtname_stells='GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)+'.nonums'
-				FGTS=file(gtname_stells,'w')
-				ss_gtree_stells=''.join([ i for i in str(gtree) if not i.isdigit()])
-				print >>FGTS,ss_gtree_stells+';'
-				FGTS.close()
+				with open(gtname_stells,'w') as FGTS:
+					ss_gtree_stells=''.join([ i for i in str(gtree) if not i.isdigit()])
+					FGTS.write(ss_gtree_stells+';\n')
+
 
 			except:
-				print >>sys.stderr,"Couldn't create output files"
+				sys.stderr.write("Couldn't create output files")
 				exit(0)
 
 			#now run stells and ours
@@ -172,7 +172,7 @@ for nspecies in [4,8,12,16]:
 			ours_out=subprocess.check_output(DP_path+" "+gtname+" "+stname,shell=True)
 			ours_prob=float(ours_out)
 			prob_diff=ours_prob-stells_prob
-			print gtname+" DP prob="+str(ours_prob)+" STELLS exact prob="+str(stells_prob)+" diff="+str(prob_diff)
+			print(gtname+" DP prob="+str(ours_prob)+" STELLS exact prob="+str(stells_prob)+" diff="+str(prob_diff))
 
 
 

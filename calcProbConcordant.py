@@ -747,12 +747,12 @@ def testProbCoals(length=0.006,ndown=70):
 	for i in range(1,ndown+1):
 		prob=probCoals(ndown,i,length)
 		probint=probCoalsByIntegration(ndown,i,length)
-		print "prob Coals"+str(prob)+" "+str(probint)
+		print("prob Coals"+str(prob)+" "+str(probint))
 		probs.append(prob)
 
 	summ=sum(probs)
 
-	print summ
+	print(summ)
 	return
 
 
@@ -764,17 +764,18 @@ def testProbCoals(length=0.006,ndown=70):
 
 
 tree_option=True
+
 try:
 	stree=dendropy.Tree.get(path=sys.argv[2],schema='newick',rooting='force-rooted')
-	gfile=file(sys.argv[1],'r')
-	lines=gfile.readlines()
-	tokens=lines[0].split()
+	with open(sys.argv[1],'r') as gfile:
+		lines=gfile.readlines()
+		tokens=lines[0].split()
 
 	if len(tokens)>1 and tokens[1].isdigit():
 		tree_option=False
 	else:
-		gfile.close()
 		gtree=dendropy.Tree.get(path=sys.argv[1],schema='newick',taxon_namespace=stree.taxon_namespace,rooting='force-rooted')
+
 except:
 	print('Usage: '+str(sys.argv[0])+' genetreefile speciestreefile')
 	print('or')
@@ -787,7 +788,7 @@ if tree_option:
 
 	spToGenes=assignGenesToSpecies(gtree,stree)
 	if spToGenes==None:
-		print >>sys.stderr,"Error: Cannot figure out the assignment of gene tree leaves to species tree leaves - each gene tree leaf name must have exactly one species name as a substring"
+		sys.stderr.write("Error: Cannot figure out the assignment of gene tree leaves to species tree leaves - each gene tree leaf name must have exactly one species name as a substring")
 		exit(0)
 
 
@@ -795,10 +796,10 @@ if tree_option:
 	lprob=logProbConcordantFast(gtree,stree,spToGenes)
 	#prob=calcProbConcordant(gtree,stree,spToGenes)
 	if lprob==err_not_concordant:
-		print >>sys.stderr,"Error: The gene tree is not monophyletically concordant with the species tree."
+		sys.stderr.write("Error: The gene tree is not monophyletically concordant with the species tree.")
 	else:
 		#print prob
-		print lprob
+		print(lprob)
 else: # calc monophyletic concordance
 	
 	spToGeneNums=parseSamplesFile(lines)
@@ -808,10 +809,10 @@ else: # calc monophyletic concordance
 
 	lprob=logProbMonoConcordance(stree,spToGeneNums)
 	if lprob==err_not_concordant:
-		print >>sys.stderr,"Error: The sample file does not match the species tree."
+		sys.stderr.write("Error: The sample file does not match the species tree.")
 	else:
 		#print prob
-		print lprob
+		print(lprob)
 	
 
 
