@@ -12,7 +12,7 @@ infty_time=1000000.0
 
 delta=0.001
 
-loggedsum_range=500.0 # if a prob is exp(500) times smaller than the largest element, we drop it
+logged_sum_range=500.0 # if a prob is exp(500) times smaller than the largest element, we drop it
 
 probhash={}
 pathhash={}
@@ -23,11 +23,11 @@ lchoosehash={}
 probspechash={}
 lprobspechash={}
 
-def loggedsum(logprobs_o):
-	global loggedsum_range
+def logged_sum(logprobs_o):
+	global logged_sum_range
 	if len(logprobs_o)==0:
 		return float('-inf')
-	threshold=max(logprobs_o)-loggedsum_range
+	threshold=max(logprobs_o)-logged_sum_range
 	if threshold==float('-inf'):
 		return float('-inf')
 	logprobs=filter(lambda x: x>=threshold,logprobs_o)
@@ -101,12 +101,12 @@ def get_children(node):
 
 #assigns genes to species. A gene is assigned to a species if the gene name contains the species name as a substring. 
 #If one gene has many species names as substrings or if some genes are left unassigned, the function returns None.
-def assignGenesToSpecies(G,S):
-	spToGenes={}
+def assign_genes_to_species(G,S):
+	sp_to_genes={}
 	splabels=[leaf.taxon.label for leaf in S.leaf_nodes()]
 	
 	for species in splabels:
-		spToGenes[species]=[]
+		sp_to_genes[species]=[]
 
 	genelabels=[leaf.taxon.label for leaf in G.leaf_nodes()]
 
@@ -117,20 +117,20 @@ def assignGenesToSpecies(G,S):
 				if assigned==True:
 					return None
 				else:
-					spToGenes[species].append(gene)
+					sp_to_genes[species].append(gene)
 					assigned=True
 
 		if assigned==False: #still no species for this gene
 			return None
-	return spToGenes
+	return sp_to_genes
 
 
 
 
-def isConcordant(G,S,spToGenes):
+def is_concordant(G,S,sp_to_genes):
 	G2=dendropy.Tree(G)
 	for s in S.leaf_nodes():
-		genes=spToGenes[s.taxon.label]
+		genes=sp_to_genes[s.taxon.label]
 		mrca=G2.mrca(taxon_labels=genes)
 		leaf_taxa=map(lambda x: x.taxon.label,mrca.leaf_nodes())
 		if set(leaf_taxa)!=set(genes):
@@ -153,11 +153,11 @@ def isConcordant(G,S,spToGenes):
 		return False
 
 #for monoconcordance, checking if the species names agree in the two files
-def isSameSpeciesTree(S,spToGeneNums):
+def is_same_species_tree(S,sp_to_gene_nums):
 	for s in S.leaf_nodes():
-		if not s.taxon.label in spToGeneNums:
+		if not s.taxon.label in sp_to_gene_nums:
 			return False
-	if len(spToGeneNums)!=len(S.leaf_nodes()):
+	if len(sp_to_gene_nums)!=len(S.leaf_nodes()):
 		return False
 	return True
 
@@ -168,15 +168,15 @@ def isSameSpeciesTree(S,spToGeneNums):
 # calculates the probability of the gene tree G given species tree S. G has to be monophyletically concordant with S.
 # G - gene tree
 # S - species tree
-# spToGenes - a map with a list of samples for each species 
-def calcProbConcordant(G,S,spToGenes):
-	if not isConcordant(G,S,spToGenes):
+# sp_to_genes - a map with a list of samples for each species 
+def calc_prob_concordant(G,S,sp_to_genes):
+	if not is_concordant(G,S,sp_to_genes):
 		return err_not_concordant
 	for s in S.leaf_node_iter():
-		genes=spToGenes[s.taxon.label]
+		genes=sp_to_genes[s.taxon.label]
 		mrca=G.mrca(taxon_labels=genes)
 		Gmrca=dendropy.Tree(seed_node=mrca.extract_subtree())
-		prob=geneTreeProbOneSpecies(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
+		prob=gene_tree_prob_one_species(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
 		ncoals=Gmrca.seed_node.n_int_nodes
 		s.P=[0.0 for i in range(ncoals+1)]
 		s.P[ncoals]=prob
@@ -199,9 +199,9 @@ def calcProbConcordant(G,S,spToGenes):
 						for k2 in range(k2p,len(child[1].P)):
 							#print "nodecnt="+str(nodecnt)+"k,k1,k2="+str(k)+','+str(k1)+','+str(k2)
 							partialmain=child[0].P[k1]*child[1].P[k2]*choose(k1p+k2p,k1p)
-							partialc1=probSpecificCoalPath(k1+1,k1p+1,child[0].edge_length)/probSpecificCoalPath(k1+1,1,infty_time)#remove some coals from c1
-							partialc2=probSpecificCoalPath(k2+1,k2p+1,child[1].edge_length)/probSpecificCoalPath(k2+1,1,infty_time)#remove coals from c2
-							partialtop=probSpecificCoalPath(k+1,1,infty_time)#add coals to the top species
+							partialc1=prob_specific_coal_path(k1+1,k1p+1,child[0].edge_length)/prob_specific_coal_path(k1+1,1,infty_time)#remove some coals from c1
+							partialc2=prob_specific_coal_path(k2+1,k2p+1,child[1].edge_length)/prob_specific_coal_path(k2+1,1,infty_time)#remove coals from c2
+							partialtop=prob_specific_coal_path(k+1,1,infty_time)#add coals to the top species
 							partial=partialmain*partialc1*partialc2*partialtop
 							s.P[k]+=partial
 			#print str(map(lambda x:x.taxon.label,s.leaf_nodes()))+' s.P=   '+str(s.P)
@@ -216,15 +216,15 @@ def calcProbConcordant(G,S,spToGenes):
 # calculates the log-probability of the gene tree G given species tree S. G has to be monophyletically concordant with S.
 # G - gene tree
 # S - species tree
-# spToGenes - a map with a list of samples for each species 
-def logProbConcordant(G,S,spToGenes):
-	if not isConcordant(G,S,spToGenes):
+# sp_to_genes - a map with a list of samples for each species 
+def log_prob_concordant(G,S,sp_to_genes):
+	if not is_concordant(G,S,sp_to_genes):
 		return err_not_concordant
 	for s in S.leaf_node_iter():
-		genes=spToGenes[s.taxon.label]
+		genes=sp_to_genes[s.taxon.label]
 		mrca=G.mrca(taxon_labels=genes)
 		Gmrca=dendropy.Tree(seed_node=mrca.extract_subtree())
-		prob=geneTreeProbOneSpecies(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
+		prob=gene_tree_prob_one_species(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
 		ncoals=Gmrca.seed_node.n_int_nodes
 		s.P=[float('-inf') for i in range(ncoals+1)]
 		s.P[ncoals]=log(prob)
@@ -249,34 +249,34 @@ def logProbConcordant(G,S,spToGenes):
 						for k2 in range(k2p,len(child[1].P)):
 							#print "nodecnt="+str(nodecnt)+"k,k1,k2="+str(k)+','+str(k1)+','+str(k2)
 							partialmain=child[0].P[k1]+child[1].P[k2]+log_choose(k1p+k2p,k1p)
-							partialc1=logProbSpecificCoalPath(k1+1,k1p+1,child[0].edge_length)-logProbSpecificCoalPath(k1+1,1,infty_time)#remove some coals from c1
-							partialc2=logProbSpecificCoalPath(k2+1,k2p+1,child[1].edge_length)-logProbSpecificCoalPath(k2+1,1,infty_time)#remove coals from c2
-							partialtop=logProbSpecificCoalPath(k+1,1,infty_time)#add coals to the top species
+							partialc1=log_prob_specific_coal_path(k1+1,k1p+1,child[0].edge_length)-log_prob_specific_coal_path(k1+1,1,infty_time)#remove some coals from c1
+							partialc2=log_prob_specific_coal_path(k2+1,k2p+1,child[1].edge_length)-log_prob_specific_coal_path(k2+1,1,infty_time)#remove coals from c2
+							partialtop=log_prob_specific_coal_path(k+1,1,infty_time)#add coals to the top species
 							partial=partialmain+partialc1+partialc2+partialtop
 							assert not math.isnan(partial)
 							partials.append(partial)
-				s.P[k]=loggedsum(partials)
+				s.P[k]=logged_sum(partials)
 				assert not math.isnan(s.P[k])
 			#print str(map(lambda x:x.taxon.label,s.leaf_nodes()))+' s.P=   '+str(s.P)
 		nodecnt+=1
 	#sum everything to get the overall prob
 
-	totallogprob=loggedsum(S.seed_node.P)
+	totallogprob=logged_sum(S.seed_node.P)
 	return totallogprob
 
 
 # calculates the log-probability of the gene tree G given species tree S. G has to be monophyletically concordant with S.
 # G - gene tree
 # S - species tree
-# spToGenes - a map with a list of samples for each species 
-def logProbConcordantFast(G,S,spToGenes):
-	if not isConcordant(G,S,spToGenes):
+# sp_to_genes - a map with a list of samples for each species 
+def log_prob_concordant_fast(G,S,sp_to_genes):
+	if not is_concordant(G,S,sp_to_genes):
 		return err_not_concordant
 	for s in S.leaf_node_iter():
-		genes=spToGenes[s.taxon.label]
+		genes=sp_to_genes[s.taxon.label]
 		mrca=G.mrca(taxon_labels=genes)
 		Gmrca=dendropy.Tree(seed_node=mrca.extract_subtree())
-		lprob=geneTreeLogProbOneSpecies(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
+		lprob=gene_tree_log_prob_one_species(Gmrca,infty_time)# this also annotates Gmrca with n_int_nodes and n_leaf_nodes
 		ncoals=Gmrca.seed_node.n_int_nodes
 		s.P=[float('-inf') for i in range(ncoals+1)]
 		s.P[ncoals]=lprob
@@ -301,11 +301,11 @@ def logProbConcordantFast(G,S,spToGenes):
 
 				for k1 in range(k1p,len(child[0].P)):
 					partialmain1=child[0].P[k1]
-					partialc1=logProbSpecificCoalPath(k1+1,k1p+1,child[0].edge_length)-logProbSpecificCoalPath(k1+1,1,infty_time)
+					partialc1=log_prob_specific_coal_path(k1+1,k1p+1,child[0].edge_length)-log_prob_specific_coal_path(k1+1,1,infty_time)
 					partial1=partialmain1+partialc1
 					partials1.append(partial1)
 
-				partialsum1=loggedsum(partials1)
+				partialsum1=logged_sum(partials1)
 				partialsums1[k1p]=partialsum1
 
 			partialsums2=[float('-inf') for i in range(len(child[0].P)+len(child[1].P))]
@@ -316,11 +316,11 @@ def logProbConcordantFast(G,S,spToGenes):
 				
 				for k2 in range(k2p,len(child[1].P)):
 					partialmain2=child[1].P[k2]
-					partialc2=logProbSpecificCoalPath(k2+1,k2p+1,child[1].edge_length)-logProbSpecificCoalPath(k2+1,1,infty_time)
+					partialc2=log_prob_specific_coal_path(k2+1,k2p+1,child[1].edge_length)-log_prob_specific_coal_path(k2+1,1,infty_time)
 					partial2=partialmain2+partialc2
 					partials2.append(partial2)
 
-				partialsum2=loggedsum(partials2)
+				partialsum2=logged_sum(partials2)
 				partialsums2[k2p]=partialsum2
 
 
@@ -336,17 +336,17 @@ def logProbConcordantFast(G,S,spToGenes):
 				for k1p in range(0,k):
 					
 					k2p=k-1-k1p
-					partial=partialsums1[k1p]+partialsums2[k2p]+log_choose(k1p+k2p,k1p)+logProbSpecificCoalPath(k+1,1,infty_time)
+					partial=partialsums1[k1p]+partialsums2[k2p]+log_choose(k1p+k2p,k1p)+log_prob_specific_coal_path(k+1,1,infty_time)
 					partials.append(partial)
 				
 					
-				s.P[k]=loggedsum(partials)
+				s.P[k]=logged_sum(partials)
 				assert not math.isnan(s.P[k])
 			#print str(map(lambda x:x.taxon.label,s.leaf_nodes()))+' s.P=   '+str(s.P)
 		nodecnt+=1
 	#sum everything to get the overall prob
 
-	totallogprob=loggedsum(S.seed_node.P)
+	totallogprob=logged_sum(S.seed_node.P)
 	return totallogprob
 
 
@@ -355,12 +355,12 @@ def logProbConcordantFast(G,S,spToGenes):
 # calculates the log-probability of the gene tree G given species tree S. G has to be monophyletically concordant with S.
 # G - gene tree
 # S - species tree
-# spToGenes - a map with a list of samples for each species 
-def logProbMonoConcordance(S,spToGeneNums):
-	if not isSameSpeciesTree(S,spToGeneNums):
+# sp_to_genes - a map with a list of samples for each species 
+def log_prob_mono_concordance(S,sp_to_gene_nums):
+	if not is_same_species_tree(S,sp_to_gene_nums):
 		return err_not_concordant
 	for s in S.leaf_node_iter():
-		ngenes=spToGeneNums[s.taxon.label]
+		ngenes=sp_to_gene_nums[s.taxon.label]
 		prob=1.0# this is the prob. of all possible topos under infty_time
 		ncoals=ngenes-1
 		s.P=[float('-inf') for i in range(ncoals+1)]
@@ -386,11 +386,11 @@ def logProbMonoConcordance(S,spToGeneNums):
 
 				for k1 in range(k1p,len(child[0].P)):
 					partialmain1=child[0].P[k1]
-					partialc1=logProbSpecificCoalPath(k1+1,k1p+1,child[0].edge_length)-logProbSpecificCoalPath(k1+1,1,infty_time)
+					partialc1=log_prob_specific_coal_path(k1+1,k1p+1,child[0].edge_length)-log_prob_specific_coal_path(k1+1,1,infty_time)
 					partial1=partialmain1+partialc1
 					partials1.append(partial1)
 
-				partialsum1=loggedsum(partials1)
+				partialsum1=logged_sum(partials1)
 				partialsums1[k1p]=partialsum1
 
 			partialsums2=[float('-inf') for i in range(len(child[0].P)+len(child[1].P))]
@@ -401,11 +401,11 @@ def logProbMonoConcordance(S,spToGeneNums):
 				
 				for k2 in range(k2p,len(child[1].P)):
 					partialmain2=child[1].P[k2]
-					partialc2=logProbSpecificCoalPath(k2+1,k2p+1,child[1].edge_length)-logProbSpecificCoalPath(k2+1,1,infty_time)
+					partialc2=log_prob_specific_coal_path(k2+1,k2p+1,child[1].edge_length)-log_prob_specific_coal_path(k2+1,1,infty_time)
 					partial2=partialmain2+partialc2
 					partials2.append(partial2)
 
-				partialsum2=loggedsum(partials2)
+				partialsum2=logged_sum(partials2)
 				partialsums2[k2p]=partialsum2
 
 
@@ -417,17 +417,17 @@ def logProbMonoConcordance(S,spToGeneNums):
 				for k1p in range(0,k):
 					
 					k2p=k-1-k1p
-					partial=partialsums1[k1p]+partialsums2[k2p]+log_choose(k1p+k2p,k1p)+logProbSpecificCoalPath(k+1,1,infty_time)
+					partial=partialsums1[k1p]+partialsums2[k2p]+log_choose(k1p+k2p,k1p)+log_prob_specific_coal_path(k+1,1,infty_time)
 					partials.append(partial)
 				
 					
-				s.P[k]=loggedsum(partials)
+				s.P[k]=logged_sum(partials)
 				assert not math.isnan(s.P[k])
 			#print str(map(lambda x:x.taxon.label,s.leaf_nodes()))+' s.P=   '+str(s.P)
 		nodecnt+=1
 	#sum everything to get the overall prob
 
-	totallogprob=loggedsum(S.seed_node.P)
+	totallogprob=logged_sum(S.seed_node.P)
 	return totallogprob
 
 
@@ -437,20 +437,20 @@ def logProbMonoConcordance(S,spToGeneNums):
 
 
 
-def geneTreeProbOneSpecies(G,length):
-	nranked=getNumRankedTopos(G)
-	pranked=probSpecificCoalPath(len(G.leaf_nodes()),1,length)
+def gene_tree_prob_one_species(G,length):
+	nranked=get_num_ranked_topos(G)
+	pranked=prob_specific_coal_path(len(G.leaf_nodes()),1,length)
 	prob=pranked*nranked
 	return prob
 
-def geneTreeLogProbOneSpecies(G,length):
-	nranked=getNumRankedTopos(G)
-	lpranked=logProbSpecificCoalPath(len(G.leaf_nodes()),1,length)
+def gene_tree_log_prob_one_species(G,length):
+	nranked=get_num_ranked_topos(G)
+	lpranked=log_prob_specific_coal_path(len(G.leaf_nodes()),1,length)
 	lprob=lpranked+log(nranked)
 	return lprob
 
 # we assume a constant delta
-def getCoalProbFromIntegral(density,nup,length):
+def get_coal_prob_from_integral(density,nup,length):
 	global delta
 
 	lastepoch=nup
@@ -468,7 +468,7 @@ def getCoalProbFromIntegral(density,nup,length):
 
 
 	
-def probCoalsByIntegration(ndown,nup,length):
+def prob_coals_by_integration(ndown,nup,length):
 	global denshash
 	global delta
 
@@ -488,7 +488,7 @@ def probCoalsByIntegration(ndown,nup,length):
 
 	dnum=0
 	for epoch in range(ndown-1,nup,-1):
-		probcoal=getCoalProbFromIntegral(density[dnum],epoch,length)
+		probcoal=get_coal_prob_from_integral(density[dnum],epoch,length)
 		#probhash[(ndown,epoch,length)]=probcoal
 		dnum+=1
 		lambdaa=float(epoch*(epoch-1)/2)
@@ -499,13 +499,13 @@ def probCoalsByIntegration(ndown,nup,length):
 				complement=xi-xj
 				densexp=lambdaa*exp(-lambdaa*complement)
 				density[dnum][i]+=density[dnum-1][j]*densexp*delta
-	probcoal=getCoalProbFromIntegral(density[dnum],nup,length)
+	probcoal=get_coal_prob_from_integral(density[dnum],nup,length)
 	#probhash[(ndown,nup,length)]=probcoal
 	return probcoal
 
 
-# builds rate matrix for probCoals - treats the number of lineages as a continuous-time Markov chain
-def buildRateMatrix(ndown,length):
+# builds rate matrix for prob_coals - treats the number of lineages as a continuous-time Markov chain
+def build_rate_matrix(ndown,length):
 	ratemat=np.eye(ndown)
 	for i in range(ndown):
 		nlins=i+1
@@ -517,8 +517,8 @@ def buildRateMatrix(ndown,length):
 			ratemat[nlins-1,nlins-1]=-rate
 	return ratemat
 
-def getProbCoalMatrix(ndown,length):
-	ratemat=buildRateMatrix(ndown,length)
+def get_prob_coal_matrix(ndown,length):
+	ratemat=build_rate_matrix(ndown,length)
 	pcoalmat=scipy.linalg.expm(ratemat)
 
 	for i in range(ndown):# this is to cope with numerical issues which still seem to happen occasionally
@@ -528,7 +528,7 @@ def getProbCoalMatrix(ndown,length):
 	return pcoalmat
 
 
-def probCoals(ndown,nup,length):
+def prob_coals(ndown,nup,length):
 	global probhash
 	global err_threshold_probcoals
 	
@@ -548,7 +548,7 @@ def probCoals(ndown,nup,length):
 		probhash[(ndown,nup,length)]=prob
 		return prob
 
-	pmat=getProbCoalMatrix(ndown,length)
+	pmat=get_prob_coal_matrix(ndown,length)
 	prob=pmat[ndown-1,nup-1]
 
 	for i in range(ndown):
@@ -558,7 +558,7 @@ def probCoals(ndown,nup,length):
 	return prob
 
 
-def probCoalsOld(ndown,nup,length):
+def prob_coals_old(ndown,nup,length):
 	global probhash
 	global err_threshold_probcoals
 	
@@ -601,7 +601,7 @@ def probCoalsOld(ndown,nup,length):
 	return prob
 
 # not used, perhaps will come back to that
-def probCoalsWithLoggedSum(ndown,nup,length):
+def prob_coals_with_logged_sum(ndown,nup,length):
 	global probhash
 	global err_threshold_probcoals
 	
@@ -634,8 +634,8 @@ def probCoalsWithLoggedSum(ndown,nup,length):
 		#add all that to prob
 		#print "ndown="+str(ndown)+"nup="+str(nup)+"length="+str(length)+"k="+str(k)+"-->  partial="+str(partial)
 		#prob+=partial
-	poslprob=loggedsum(poslpartials)
-	neglprob=loggedsum(neglpartials)
+	poslprob=logged_sum(poslpartials)
+	neglprob=logged_sum(neglpartials)
 	prob=exp(poslprob)-exp(neglprob)
 
 	if prob<0.0 and prob>-err_threshold_probcoals:
@@ -671,11 +671,11 @@ def logNumCoalPaths(ndown,nup):
 	lpathhash[(ndown,nup)]=lnpaths
 	return lnpaths
 
-def probSpecificCoalPath(ndown,nup,length):
+def prob_specific_coal_path(ndown,nup,length):
 	global probspechash
 	if (ndown,nup,length) in probspechash:
 		return probspechash[(ndown,nup,length)]
-	p=probCoals(ndown,nup,length)
+	p=prob_coals(ndown,nup,length)
 	if p==0.0:
 		return 0.0
 	lpspec=log(p)-logNumCoalPaths(ndown,nup)
@@ -683,11 +683,11 @@ def probSpecificCoalPath(ndown,nup,length):
 	probspechash[(ndown,nup,length)]=pspec
 	return pspec
 
-def logProbSpecificCoalPath(ndown,nup,length):
+def log_prob_specific_coal_path(ndown,nup,length):
 	global lprobspechash
 	if (ndown,nup,length) in lprobspechash:
 		return lprobspechash[(ndown,nup,length)]
-	p=probCoals(ndown,nup,length)
+	p=prob_coals(ndown,nup,length)
 	lpspec=0.0
 	if p==0.0:
 		lpspec=float('-inf')-logNumCoalPaths(ndown,nup)
@@ -700,8 +700,8 @@ def logProbSpecificCoalPath(ndown,nup,length):
 
 
 # the number of ranked topologies corresponding to the unranked topology G
-def getNumRankedTopos(G):
-	annotateNumCoals(G)
+def get_num_ranked_topos(G):
+	annotate_num_coals(G)
 	for node in G.postorder_node_iter():
 		if node.is_leaf():
 			node.n_ranked=1
@@ -716,7 +716,7 @@ def getNumRankedTopos(G):
 
 
 #for each node, records # internal nodes down that node (including the node itself)
-def annotateNumCoals(G):
+def annotate_num_coals(G):
 	
 	for node in G.postorder_node_iter():
 		if node.is_leaf():
@@ -730,23 +730,23 @@ def annotateNumCoals(G):
 
 
 #for probability of concordance
-def parseSamplesFile(lines):
-	spToGeneNums={}
+def parse_samples_file(lines):
+	sp_to_gene_nums={}
 	for line in lines:
 		tokens=line.split()
 		nsamples=int(tokens[1])
-		spToGeneNums[tokens[0]]=nsamples
-	return spToGeneNums
+		sp_to_gene_nums[tokens[0]]=nsamples
+	return sp_to_gene_nums
 
 
 
 #-----tests----
 
-def testProbCoals(length=0.006,ndown=70):
+def test_prob_coals(length=0.006,ndown=70):
 	probs=[]
 	for i in range(1,ndown+1):
-		prob=probCoals(ndown,i,length)
-		probint=probCoalsByIntegration(ndown,i,length)
+		prob=prob_coals(ndown,i,length)
+		probint=prob_coals_by_integration(ndown,i,length)
 		print("prob Coals"+str(prob)+" "+str(probint))
 		probs.append(prob)
 
@@ -786,15 +786,15 @@ if tree_option:
 
 	precalc_log_factorials(len(gtree.leaf_nodes())*2+100)
 
-	spToGenes=assignGenesToSpecies(gtree,stree)
-	if spToGenes==None:
+	sp_to_genes=assign_genes_to_species(gtree,stree)
+	if sp_to_genes==None:
 		sys.stderr.write("Error: Cannot figure out the assignment of gene tree leaves to species tree leaves - each gene tree leaf name must have exactly one species name as a substring")
 		exit(0)
 
 
 
-	lprob=logProbConcordantFast(gtree,stree,spToGenes)
-	#prob=calcProbConcordant(gtree,stree,spToGenes)
+	lprob=log_prob_concordant_fast(gtree,stree,sp_to_genes)
+	#prob=calc_prob_concordant(gtree,stree,sp_to_genes)
 	if lprob==err_not_concordant:
 		sys.stderr.write("Error: The gene tree is not monophyletically concordant with the species tree.")
 	else:
@@ -802,12 +802,12 @@ if tree_option:
 		print(lprob)
 else: # calc monophyletic concordance
 	
-	spToGeneNums=parseSamplesFile(lines)
-	nsamples=sum([spToGeneNums[s] for s in spToGeneNums])
+	sp_to_gene_nums=parse_samples_file(lines)
+	nsamples=sum([sp_to_gene_nums[s] for s in sp_to_gene_nums])
 
 	precalc_log_factorials(nsamples*2+100)
 
-	lprob=logProbMonoConcordance(stree,spToGeneNums)
+	lprob=log_prob_mono_concordance(stree,sp_to_gene_nums)
 	if lprob==err_not_concordant:
 		sys.stderr.write("Error: The sample file does not match the species tree.")
 	else:
