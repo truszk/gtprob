@@ -1,13 +1,11 @@
 import dendropy
-import sys
-import random
-from dendropy.simulate import treesim
-import math
-import numpy as np
+from test_lib import *
 import subprocess
+import os
 
 stells_path='/home/jakub/stells/STELLS2-master/stells-v2-1-0-linux64'
-DP_path='python ../calcProbConcordant.py'
+DP_path='python ./calcProbConcordant.py'
+test_dir = 'tests'
 
 letters=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
 
@@ -146,17 +144,17 @@ for nspecies in [4,8,12,16]:
 			gtree=generateMonoConcordantTree(stree,genespersp)
 
 			try:
-				stname='ST.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)
+				stname=os.path.join(test_dir,'ST.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len))
 				with open(stname,'w') as FST:
 					FST.write(str(stree)+';\n')
 				
 				
-				gtname='GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)
+				gtname=os.path.join(test_dir,'GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len))
 				with open(gtname,'w') as FGT:
 					FGT.write(str(gtree)+';\n')
 				
 
-				gtname_stells='GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)+'.nonums'
+				gtname_stells=os.path.join(test_dir,'GT.sp'+str(nspecies)+'.gps'+str(genespersp)+'.len'+str(mean_len)+'.nonums')
 				with open(gtname_stells,'w') as FGTS:
 					ss_gtree_stells=''.join([ i for i in str(gtree) if not i.isdigit()])
 					FGTS.write(ss_gtree_stells+';\n')
