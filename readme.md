@@ -12,13 +12,13 @@ This program can be used to compute the probability of a monophyletically concor
 
 To compute the probability of a gene tree given a species tree, type
 
-`python ./calcProbConcordant.py gene_tree_file species_tree_file`
+`python ./calc_prob_concordant.py gene_tree_file species_tree_file`
 
 where `gene_tree_file` is the gene tree topology in newick format and `species_tree_file` is the species tree (also in newick format) with branch lengths in coalescent units. 
 
 To compute the probability of monophyletic concordance given a species tree, type
 
-`python ./calcProbConcordant.py gene_samples_file species_tree_file`
+`python ./calc_prob_concordant.py gene_samples_file species_tree_file`
 
 where `gene_samples_file` is a file in the following format:
 
