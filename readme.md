@@ -1,14 +1,14 @@
-#gtprob: Rapid computation of gene tree probabilities for monophyletically concordant gene trees under the multispecies coalescent#
+# gtprob: Rapid computation of gene tree probabilities for monophyletically concordant gene trees under the multispecies coalescent #
 
 This program can be used to compute the probability of a monophyletically concordant gene tree topology given a species tree. Alternatively, given a species tree and the number of sampled genes from each leaf species, it can be used to compute the probability that the gene tree is monophyletically concordant with the species tree. It implements an algorithm described in Truszkowski, Scornavacca and Pardi[1]. Monophyletic concordance was
 
-##Requirements:##
+## Requirements: ##
 
 - dendropy (>=4.4.0)
 - numpy
 - scipy
 
-##Usage:##
+## Usage: ##
 
 To compute the probability of a gene tree given a species tree, type
 
@@ -22,16 +22,16 @@ To compute the probability of monophyletic concordance given a species tree, typ
 
 where `gene_samples_file` is a file in the following format:
 
-`species_1 num_samples_in_species_1\
-species_2 num_samples_in_species_2\
-...\
+`species_1 num_samples_in_species_1
+species_2 num_samples_in_species_2
+...
 species_n num_samples_in_species_n`
 
-##Please cite:##
+## Please cite: ##
 
 [1] Truszkowski J., Scornavacca C.,Pardi F. Computing the probability of gene trees concordant with the species tree in the multispecies coalescent. Submitted.
 
-##References:##
+## References: ##
 
 [1] Truszkowski J., Scornavacca C.,Pardi F. Computing the probability of gene trees concordant with the species tree in the multispecies coalescent. Submitted.
 
