@@ -1,6 +1,6 @@
 # gtprob: Rapid computation of gene tree probabilities for monophyletically concordant gene trees under the multispecies coalescent #
 
-This program can be used to compute the probability of a monophyletically concordant gene tree topology given a species tree. Alternatively, given a species tree and the number of sampled genes from each leaf species, it can be used to compute the probability that the gene tree is monophyletically concordant with the species tree. It implements an algorithm described in Truszkowski, Scornavacca and Pardi[1]. Monophyletic concordance was
+This program can be used to compute the probability of a monophyletically concordant gene tree topology given a species tree. Alternatively, given a species tree and the number of sampled genes from each leaf species, it can be used to compute the probability that the gene tree is monophyletically concordant with the species tree. It implements an algorithm described in Truszkowski, Scornavacca and Pardi[1]. Monophyletic concordance was first defined by Rosenberg[2].
 
 ## Requirements: ##
 
