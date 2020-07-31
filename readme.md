@@ -8,6 +8,10 @@ This program can be used to compute the probability of a monophyletically concor
 - numpy
 - scipy
 
+All of the above can be installed using the requirements file by typing
+
+`pip install -r requirements.txt`
+
 ## Usage: ##
 
 To compute the probability of a gene tree given a species tree, type
