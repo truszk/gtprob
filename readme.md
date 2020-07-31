@@ -22,10 +22,10 @@ To compute the probability of monophyletic concordance given a species tree, typ
 
 where `gene_samples_file` is a file in the following format:
 
-`species_1 num_samples_in_species_1  
-species_2 num_samples_in_species_2  
-...  
-species_n num_samples_in_species_n`
+	`species_1 num_samples_in_species_1`
+`species_2 num_samples_in_species_2`
+`...`
+`species_n num_samples_in_species_n`
 
 ## Please cite: ##
 
