@@ -18,13 +18,21 @@ To compute the probability of a gene tree given a species tree, type
 
 `python ./calc_prob_concordant.py gene_tree_file species_tree_file`
 
-where `gene_tree_file` is the gene tree topology in newick format and `species_tree_file` is the species tree (also in newick format) with branch lengths in coalescent units. 
+where `gene_tree_file` is the gene tree topology in Newick format (see **File Formats** below) and `species_tree_file` is the species tree with branch lengths in coalescent units. 
 
 To compute the probability of monophyletic concordance given a species tree, type
 
 `python ./calc_prob_concordant.py gene_samples_file species_tree_file`
 
-where `gene_samples_file` is a file in the following format:
+where `gene_samples_file` specifies the number of samples from each species.
+
+##File formats##
+
+A **species tree file** is a standard Newick file with branch lengths in coalescent units.
+
+A **gene tree file** should contain a gene tree topology in Newick format, without the branch lengths. Each sample from `species_x` should have `species_x` as a substring of its name.
+
+A **gene samples file** specifies the number of samples from each species in the following format:
 
 	species_1 num_samples_in_species_1
 	species_2 num_samples_in_species_2
