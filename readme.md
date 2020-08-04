@@ -26,7 +26,7 @@ To compute the probability of monophyletic concordance given a species tree, typ
 
 where `gene_samples_file` specifies the number of samples from each species.
 
-##File formats##
+## File formats ##
 
 A **species tree file** is a standard Newick file with branch lengths in coalescent units.
 
